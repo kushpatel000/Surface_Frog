@@ -23,6 +23,8 @@ class engine:
 			self.Tmax	= data['Tmax']	if 'Tmax'	in data else 20000.0
 			self.x0		= data['x0']	if 'x0'		in data else -5.0
 			self.p0		= data['p0']	if 'p0'		in data else 5.0
+			self.sg_x	= data['sg_x']	if 'sg_x'	in data else 0.0
+			self.sg_p	= data['sg_p']	if 'sg_p'	in data else 0.0
 			self.state0 = data['state0']if 'state0'	in data else 0
 			self.logQ	= data['logQ']	if 'logQ'	in data else False
 			self.mdl_nm	= data['model'] if 'model'	in data else 'SimpleAvoidedCrossing'
@@ -54,10 +56,11 @@ class engine:
 		self.force_style = self.force_style.lower()
 
 	def _prep_initial_conditions(self):
+		rs = np.random.RandomState()
+		self.position	= rs.normal(loc=self.x0,scale=np.abs(self.sg_x))
+		self.momentum	= rs.normal(loc=self.p0,scale=np.abs(self.sg_p))
 		self.rho = np.zeros( [self.nstates,self.nstates],dtype=np.complex128 )
 		self.rho[self.state0,self.state0] = 1.0
-		self.position	= self.x0
-		self.momentum	= self.p0
 		self.state		= self.state0
 		self.time       = 0.0
 
@@ -229,8 +232,8 @@ class engine:
 			wrtr.write( self._header_format("Model"				,self.mdl_nm) )
 			wrtr.write( self._header_format("Time Step"			,self.dt) )
 			wrtr.write( self._header_format("Max Time"			,self.Tmax))
-			wrtr.write( self._header_format("Initial Position"	,self.x0) )
-			wrtr.write( self._header_format("Initial Momentum"	,self.p0) )
+			wrtr.write( self._header_format("Initial Position"	,self.position) )
+			wrtr.write( self._header_format("Initial Momentum"	,self.momentum) )
 			wrtr.write( self._header_format("Initial State"		,self.state0))
 			wrtr.write( self._header_format("CollapseQ"			,self.collapseQ))
 			wrtr.write( self._header_format("Hop Style"			,self.hop_style))
